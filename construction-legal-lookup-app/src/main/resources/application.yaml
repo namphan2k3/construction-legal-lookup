@@ -1,0 +1,42 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Ho_Chi_Minh
+    serialization:
+      write-dates-as-timestamps: false
+
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+    default-locale: vi
+
+auth:
+  verification-token-expiry-hours: 24
+  password-reset-token-expiry-hours: 1
+
+springdoc:
+  default-flat-param-object: true
+
+file:
+  max-pdf-size: ${FILE_MAX_PDF_SIZE:5242880}
+
+cloudinary:
+  cloud_name: ${CLOUDINARY_CLOUD_NAME:}
+  api_key: ${CLOUDINARY_API_KEY:}
+  api_secret: ${CLOUDINARY_API_SECRET:}
+
+ai:
+  api-key: ${AI_API_KEY:}
