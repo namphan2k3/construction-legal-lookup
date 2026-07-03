@@ -1,0 +1,42 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: construction_legal_mysql
+    environment:
+      MYSQL_DATABASE: construction_legal_lookup
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p${MYSQL_ROOT_PASSWORD:-123456} || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+    networks:
+      - construction_legal_net
+
+  redis:
+    image: redis:7.2
+    container_name: construction_legal_redis
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-redispass}"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD:-redispass} ping || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+    networks:
+      - construction_legal_net
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  construction_legal_net:
+    driver: bridge
