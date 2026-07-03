@@ -1,0 +1,10 @@
+.idea
+*.iml
+*.iws
+*.ipr
+.DS_Store
+
+construction-legal-lookup-app/target/
+construction-legal-lookup-app/.mvn/wrapper/maven-wrapper.jar
+construction-legal-lookup-app/src/main/resources/application-dev.yaml
+construction-legal-lookup-app/.env*
