@@ -22,13 +22,12 @@
 11. [AI API](#11-ai-api)
 12. [Admin — Dashboard](#12-admin--dashboard)
 13. [Admin — Quản lý văn bản](#13-admin--quản-lý-văn-bản)
-14. [Admin — Quan hệ văn bản](#14-admin--quan-hệ-văn-bản)
-15. [Admin — Danh mục & Tag](#15-admin--danh-mục--tag)
-16. [Admin — Quản lý User](#16-admin--quản-lý-user)
-17. [Admin — Crawl & Nhật ký đồng bộ](#17-admin--crawl--nhật-ký-đồng-bộ)
-18. [Health & Metadata](#18-health--metadata)
-19. [Enum tham chiếu](#19-enum-tham-chiếu)
-20. [Ma trận phân quyền](#20-ma-trận-phân-quyền)
+14. [Admin — Danh mục & Tag](#14-admin--danh-mục--tag)
+15. [Admin — Quản lý User](#15-admin--quản-lý-user)
+16. [Admin — Crawl & Nhật ký đồng bộ](#16-admin--crawl--nhật-ký-đồng-bộ)
+17. [Health & Metadata](#17-health--metadata)
+18. [Enum tham chiếu](#18-enum-tham-chiếu)
+19. [Ma trận phân quyền](#19-ma-trận-phân-quyền)
 
 ---
 
@@ -894,133 +893,7 @@ GET /api/documents/suggest?q=15/2022
 
 ---
 
-### 7.4. Mục lục — Điều, khoản
-
-**Mô tả:** Cây phân cấp sections của văn bản (mục lục + anchor jump).
-
-| | |
-|---|---|
-| **Method** | `GET` |
-| **Path** | `/api/documents/{id}/sections` |
-| **Auth** | Không |
-
-**Response `200 OK`:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "documentId": 42,
-    "sections": [
-      {
-        "id": 101,
-        "sectionType": "CHUONG",
-        "numberLabel": "Chương I",
-        "title": "NHỮNG QUY ĐỊNH CHUNG",
-        "orderIndex": 1,
-        "anchorSlug": "chuong-i",
-        "children": [
-          {
-            "id": 102,
-            "sectionType": "DIEU",
-            "numberLabel": "Điều 1",
-            "title": "Phạm vi điều chỉnh",
-            "content": "Nghị định này quy định chi tiết...",
-            "orderIndex": 1,
-            "anchorSlug": "dieu-1",
-            "children": [
-              {
-                "id": 103,
-                "sectionType": "KHOAN",
-                "numberLabel": "Khoản 1",
-                "title": null,
-                "content": "Quy định về...",
-                "orderIndex": 1,
-                "anchorSlug": "dieu-1-khoan-1",
-                "children": []
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "timestamp": "2026-07-03T14:30:00+07:00"
-}
-```
-
----
-
-### 7.5. Quan hệ văn bản
-
-**Mô tả:** Liệt kê quan hệ theo nhóm (hướng dẫn, sửa đổi, thay thế, liên quan).
-
-| | |
-|---|---|
-| **Method** | `GET` |
-| **Path** | `/api/documents/{id}/relations` |
-| **Auth** | Không |
-
-**Response `200 OK`:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "documentId": 42,
-    "relations": {
-      "guidedBy": [
-        {
-          "relationType": "GUIDED_BY",
-          "document": {
-            "id": 1,
-            "documentNumber": "50/2014/QH13",
-            "title": "Luật Xây dựng",
-            "documentType": "LUAT",
-            "status": "HET_HIEU_LUC"
-          },
-          "note": null
-        }
-      ],
-      "guides": [],
-      "amendedBy": [
-        {
-          "relationType": "AMENDED_BY",
-          "document": {
-            "id": 55,
-            "documentNumber": "35/2023/NĐ-CP",
-            "title": "Nghị định sửa đổi Nghị định 15/2022/NĐ-CP",
-            "documentType": "NGHI_DINH",
-            "status": "CON_HIEU_LUC"
-          },
-          "note": null
-        }
-      ],
-      "amends": [],
-      "replaces": [],
-      "replacedBy": [],
-      "related": [
-        {
-          "relationType": "RELATED",
-          "document": {
-            "id": 30,
-            "documentNumber": "06/2021/TT-BXD",
-            "title": "Thông tư hướng dẫn cấp giấy phép xây dựng",
-            "documentType": "THONG_TU",
-            "status": "CON_HIEU_LUC"
-          },
-          "note": "Cùng lĩnh vực GPXD"
-        }
-      ]
-    }
-  },
-  "timestamp": "2026-07-03T14:30:00+07:00"
-}
-```
-
----
-
-### 7.6. Tải PDF
+### 7.4. Tải PDF
 
 **Mô tả:** Redirect hoặc stream file PDF. Ghi audit `DOWNLOAD`, tăng `downloadCount`.
 
@@ -1894,97 +1767,9 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 14. Admin — Quan hệ văn bản
+## 14. Admin — Danh mục & Tag
 
-### 14.1. Danh sách quan hệ của văn bản
-
-| | |
-|---|---|
-| **Method** | `GET` |
-| **Path** | `/api/admin/documents/{id}/relations` |
-| **Auth** | ADMIN |
-
-**Response `200 OK`:** Mảng phẳng (không group):
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "sourceDocumentId": 42,
-      "targetDocumentId": 1,
-      "relationType": "GUIDED_BY",
-      "note": null,
-      "targetDocument": {
-        "id": 1,
-        "documentNumber": "50/2014/QH13",
-        "title": "Luật Xây dựng"
-      }
-    }
-  ]
-}
-```
-
----
-
-### 14.2. Tạo quan hệ
-
-| | |
-|---|---|
-| **Method** | `POST` |
-| **Path** | `/api/admin/relations` |
-| **Auth** | ADMIN |
-
-**Request Body:**
-
-```json
-{
-  "sourceDocumentId": 42,
-  "targetDocumentId": 1,
-  "relationType": "GUIDED_BY",
-  "note": "Hướng dẫn thi hành Luật Xây dựng"
-}
-```
-
-**Response `201 Created`:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": 50,
-    "sourceDocumentId": 42,
-    "targetDocumentId": 1,
-    "relationType": "GUIDED_BY"
-  }
-}
-```
-
----
-
-### 14.3. Xóa quan hệ
-
-| | |
-|---|---|
-| **Method** | `DELETE` |
-| **Path** | `/api/admin/relations/{relationId}` |
-| **Auth** | ADMIN |
-
-**Response `200 OK`:**
-
-```json
-{
-  "success": true,
-  "data": { "message": "Đã xóa quan hệ" }
-}
-```
-
----
-
-## 15. Admin — Danh mục & Tag
-
-### 15.1. CRUD Categories
+### 14.1. CRUD Categories
 
 | Method | Path | Mô tả |
 |--------|------|-------|
@@ -2020,7 +1805,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 15.2. CRUD Tags
+### 14.2. CRUD Tags
 
 | Method | Path | Mô tả |
 |--------|------|-------|
@@ -2040,9 +1825,9 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 16. Admin — Quản lý User
+## 15. Admin — Quản lý User
 
-### 16.1. Danh sách user
+### 15.1. Danh sách user
 
 | | |
 |---|---|
@@ -2078,7 +1863,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 16.2. Khóa user
+### 15.2. Khóa user
 
 **Mô tả:** `enabled = false` + revoke all refresh token Redis.
 
@@ -2099,7 +1884,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 16.3. Mở khóa user
+### 15.3. Mở khóa user
 
 | | |
 |---|---|
@@ -2118,7 +1903,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 16.4. Đổi role user
+### 15.4. Đổi role user
 
 | | |
 |---|---|
@@ -2136,11 +1921,11 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 17. Admin — Crawl & Nhật ký đồng bộ
+## 16. Admin — Crawl & Nhật ký đồng bộ
 
 > **Optional** — phục vụ refresh dataset. Production demo có thể ẩn menu.
 
-### 17.1. Trigger đồng bộ dữ liệu
+### 16.1. Trigger đồng bộ dữ liệu
 
 **Mô tả:** Kích hoạt job crawl (async). Backend gọi Python script hoặc internal service. Ghi `crawl_logs`.
 
@@ -2180,7 +1965,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 17.2. Danh sách nhật ký đồng bộ
+### 16.2. Danh sách nhật ký đồng bộ
 
 | | |
 |---|---|
@@ -2221,7 +2006,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 17.3. Chi tiết nhật ký đồng bộ
+### 16.3. Chi tiết nhật ký đồng bộ
 
 | | |
 |---|---|
@@ -2258,9 +2043,9 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 18. Health & Metadata
+## 17. Health & Metadata
 
-### 18.1. Health check
+### 17.1. Health check
 
 | | |
 |---|---|
@@ -2283,7 +2068,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 18.2. Swagger UI
+### 17.2. Swagger UI
 
 | | |
 |---|---|
@@ -2294,7 +2079,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 19. Enum tham chiếu
+## 18. Enum tham chiếu
 
 Đồng bộ với [DATABASE.md](./DATABASE.md#5-enum--hằng-số-nghiệp-vụ).
 
@@ -2324,7 +2109,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 20. Ma trận phân quyền
+## 19. Ma trận phân quyền
 
 > Chỉ dùng **role** (`USER` / `ADMIN`) — **không** có permission per-endpoint.
 

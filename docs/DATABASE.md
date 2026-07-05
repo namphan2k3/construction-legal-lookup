@@ -325,6 +325,7 @@ Bảng trung tâm — mỗi row = một văn bản pháp luật.
 | `pdf_file_name` | VARCHAR(255) | YES | NULL | Tên file gốc |
 | `pdf_size_bytes` | BIGINT | YES | NULL | Kích thước file |
 | `content_text` | LONGTEXT | YES | NULL | Toàn văn plain text (search + AI) |
+| `content_html` | LONGTEXT | YES | NULL | Toàn văn HTML (hiển thị khi không có PDF) |
 | `search_text` | LONGTEXT | YES | NULL | Text không dấu, lowercase |
 | `source_url` | VARCHAR(500) | YES | NULL | URL nguồn crawl |
 | `view_count` | INT | NO | 0 | Lượt xem (denormalized) |
@@ -738,7 +739,7 @@ crawler/main.py
 | `ngay_ban_hanh` | `issued_date` |
 | `hieu_luc` | `status`, `effective_date`, `expiry_date` |
 | `pdf_path` | upload → `pdf_url` |
-| `full_text` | `content_text`, `search_text` |
+| `full_text` | `content_text`, `content_html`, `search_text` |
 | `source` | `source_url` |
 
 ### 10.3. Insert vs Update (crawl lần 2+)
@@ -970,6 +971,7 @@ CREATE TABLE documents (
     pdf_file_name               VARCHAR(255)    NULL,
     pdf_size_bytes              BIGINT          NULL,
     content_text                LONGTEXT        NULL,
+    content_html                LONGTEXT        NULL,
     search_text                 LONGTEXT        NULL,
     source_url                  VARCHAR(500)    NULL,
     view_count                  INT             NOT NULL DEFAULT 0,
