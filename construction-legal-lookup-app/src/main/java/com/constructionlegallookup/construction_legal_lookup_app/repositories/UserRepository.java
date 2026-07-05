@@ -19,9 +19,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByIdAndDeletedAtIsNull(Long id);
     
     @Query("SELECT u FROM User u WHERE " +
-           "(:q IS NULL OR LOWER(u.email) LIKE %:q% OR LOWER(u.fullName) LIKE %:q%) AND " +
+           "(:q IS NULL OR u.email LIKE CONCAT('%', :q, '%') OR u.fullName LIKE CONCAT('%', :q, '%')) AND " +
            "(:enabled IS NULL OR u.enabled = :enabled) AND " +
            "(:role IS NULL OR u.role = :role)")
-    Page<User> findAllByFilters(@Param("q") String q, @Param("enabled") Boolean enabled, 
+    Page<User> findAllByFilters(@Param("q") String q, @Param("enabled") Boolean enabled,
                                   @Param("role") UserRole role, Pageable pageable);
 }

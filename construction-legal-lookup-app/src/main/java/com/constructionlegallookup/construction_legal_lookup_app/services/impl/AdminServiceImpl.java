@@ -1,5 +1,6 @@
 package com.constructionlegallookup.construction_legal_lookup_app.services.impl;
 
+import com.constructionlegallookup.construction_legal_lookup_app.dto.responses.admin.AdminUserDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
@@ -86,6 +87,14 @@ public class AdminServiceImpl implements AdminService {
                         .eventType(log.getEventType().name())
                         .metadata(parseMetadata(log.getMetadataJson()))
                         .createdAt(log.getCreatedAt())
+                        .user(log.getUser() != null ? AdminUserDto.builder()
+                                .id(log.getUser().getId())
+                                .email(log.getUser().getEmail())
+                                .fullName(log.getUser().getFullName())
+                                .role(log.getUser().getRole().name())
+                                .enabled(log.getUser().isEnabled())
+                                .createdAt(log.getUser().getCreatedAt())
+                                .build() : null)
                         .build())
                 .limit(10)
                 .collect(Collectors.toList());

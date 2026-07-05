@@ -6,6 +6,10 @@ server:
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
 
   flyway:
     enabled: true
@@ -31,12 +35,12 @@ springdoc:
   default-flat-param-object: true
 
 file:
-  max-pdf-size: ${FILE_MAX_PDF_SIZE:5242880}
+  max-pdf-size: ${FILE_MAX_PDF_SIZE:52428800}
 
 cloudinary:
-  cloud_name: ${CLOUDINARY_CLOUD_NAME:}
-  api_key: ${CLOUDINARY_API_KEY:}
-  api_secret: ${CLOUDINARY_API_SECRET:}
+  cloud_name: ${DEV_CLOUDINARY_CLOUD_NAME:}
+  api_key: ${DEV_CLOUDINARY_API_KEY:}
+  api_secret: ${DEV_CLOUDINARY_API_SECRET:}
 
 ai:
   api-key: ${AI_API_KEY:}

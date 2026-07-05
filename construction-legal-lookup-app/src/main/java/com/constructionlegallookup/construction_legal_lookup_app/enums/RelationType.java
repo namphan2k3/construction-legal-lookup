@@ -7,5 +7,7 @@ public enum RelationType {
     AMENDS,
     REPLACES,
     REPLACED_BY,
-    RELATED
+    RELATED,
+    REFERENCES,
+    REFERENCED_BY
 }

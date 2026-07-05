@@ -66,22 +66,6 @@ public class DocumentController {
                 .build();
     }
 
-    @GetMapping("/{id}/sections")
-    public ApiResponse<List<SectionDto>> getDocumentSections(@PathVariable Long id) {
-        List<SectionDto> sections = documentService.getDocumentSections(id);
-        return ApiResponse.<List<SectionDto>>builder()
-                .data(sections)
-                .build();
-    }
-
-    @GetMapping("/{id}/relations")
-    public ApiResponse<DocumentRelationsResponse> getDocumentRelations(@PathVariable Long id) {
-        DocumentRelationsResponse relations = documentService.getDocumentRelations(id);
-        return ApiResponse.<DocumentRelationsResponse>builder()
-                .data(relations)
-                .build();
-    }
-
     @GetMapping("/{id}/download")
     public ApiResponse<String> downloadDocument(@PathVariable Long id) {
         String downloadUrl = documentService.downloadDocumentPdf(id);

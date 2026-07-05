@@ -21,6 +21,7 @@ public enum ErrorCode {
     INVALID_TOKEN("invalid_token", HttpStatus.UNAUTHORIZED),
     ACCOUNT_DISABLED("account_disabled", HttpStatus.FORBIDDEN),
     EMAIL_ALREADY_EXISTS("email_already_exists", HttpStatus.CONFLICT),
+    EMAIL_EXISTED("email.existed", HttpStatus.CONFLICT),
     DOCUMENT_NOT_EXISTED("document.not_existed", HttpStatus.NOT_FOUND),
     DOCUMENT_NOT_FOUND("document.not_found", HttpStatus.NOT_FOUND),
     BOOKMARK_NOT_FOUND("bookmark.not_found", HttpStatus.NOT_FOUND),

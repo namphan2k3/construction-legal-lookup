@@ -71,5 +71,6 @@ public class AdminDashboardResponse {
         String eventType;
         Map<String, Object> metadata;
         LocalDateTime createdAt;
+        AdminUserDto user;
     }
 }

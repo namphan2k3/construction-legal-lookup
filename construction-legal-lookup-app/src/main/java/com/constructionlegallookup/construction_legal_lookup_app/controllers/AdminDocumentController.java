@@ -35,7 +35,7 @@ import lombok.experimental.FieldDefaults;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/admin/documents")
+@RequestMapping("/admin/documents")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Tag(name = "Admin - Documents", description = "Admin document management")
@@ -83,8 +83,39 @@ public class AdminDocumentController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<DocumentAdminDto>> createDocument(@Valid @RequestBody DocumentAdminRequest request) {
-        DocumentAdminDto created = adminDocumentService.createDocument(request);
+    public ResponseEntity<ApiResponse<DocumentAdminDto>> createDocument(
+            @RequestPart("documentNumber") String documentNumber,
+            @RequestPart("title") String title,
+            @RequestPart(value = "abstractText", required = false) String abstractText,
+            @RequestPart("documentType") String documentType,
+            @RequestPart(value = "issuingBody", required = false) String issuingBody,
+            @RequestPart(value = "signer", required = false) String signer,
+            @RequestPart("issuedDate") String issuedDate,
+            @RequestPart(value = "effectiveDate", required = false) String effectiveDate,
+            @RequestPart(value = "expiryDate", required = false) String expiryDate,
+            @RequestPart("status") String status,
+            @RequestPart("file") MultipartFile file,
+            @RequestPart(value = "sourceUrl", required = false) String sourceUrl,
+            @RequestPart(value = "categoryIds", required = false) java.util.List<Long> categoryIds,
+            @RequestPart(value = "tagIds", required = false) java.util.List<Long> tagIds) throws IOException {
+        
+        DocumentAdminRequest request = DocumentAdminRequest.builder()
+                .documentNumber(documentNumber)
+                .title(title)
+                .abstractText(abstractText)
+                .documentType(documentType)
+                .issuingBody(issuingBody)
+                .signer(signer)
+                .issuedDate(java.time.LocalDate.parse(issuedDate))
+                .effectiveDate(effectiveDate != null ? java.time.LocalDate.parse(effectiveDate) : null)
+                .expiryDate(expiryDate != null ? java.time.LocalDate.parse(expiryDate) : null)
+                .status(status)
+                .sourceUrl(sourceUrl)
+                .categoryIds(categoryIds)
+                .tagIds(tagIds)
+                .build();
+        
+        DocumentAdminDto created = adminDocumentService.createDocumentWithPdf(request, file);
         ApiResponse<DocumentAdminDto> response = ApiResponse.<DocumentAdminDto>builder()
                 .success(true)
                 .data(created)

@@ -2,6 +2,7 @@ services:
   mysql:
     image: mysql:8.0
     container_name: construction_legal_mysql
+    command: --max_allowed_packet=256M
     environment:
       MYSQL_DATABASE: construction_legal_lookup
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}

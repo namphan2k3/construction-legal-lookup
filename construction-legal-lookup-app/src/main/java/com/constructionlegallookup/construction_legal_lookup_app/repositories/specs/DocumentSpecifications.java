@@ -21,11 +21,11 @@ public class DocumentSpecifications {
     public static Specification<Document> hasKeyword(String q) {
         return (root, query, cb) -> {
             if (q == null || q.isBlank()) return null;
-            String pattern = "%" + q.trim().toLowerCase() + "%";
+            String pattern = "%" + q.trim() + "%";
             return cb.or(
-                cb.like(cb.lower(root.get("title")), pattern),
-                cb.like(cb.lower(root.get("abstractText")), pattern),
-                cb.like(cb.lower(root.get("searchText")), pattern)
+                cb.like(root.get("title"), pattern),
+                cb.like(root.get("abstractText"), pattern),
+                cb.like(root.get("searchText"), pattern)
             );
         };
     }
@@ -33,8 +33,8 @@ public class DocumentSpecifications {
     public static Specification<Document> hasDocumentNumber(String documentNumber) {
         return (root, query, cb) -> {
             if (documentNumber == null || documentNumber.isBlank()) return null;
-            String normalized = documentNumber.replaceAll("[^a-zA-Z0-9/\\-]", "").toLowerCase();
-            return cb.like(cb.lower(root.get("documentNumberNormalized")), "%" + normalized + "%");
+            String normalized = documentNumber.replaceAll("[^a-zA-Z0-9/\\-]", "");
+            return cb.like(root.get("documentNumberNormalized"), "%" + normalized + "%");
         };
     }
 
@@ -65,7 +65,7 @@ public class DocumentSpecifications {
     public static Specification<Document> hasIssuingBody(String issuingBody) {
         return (root, query, cb) -> {
             if (issuingBody == null || issuingBody.isBlank()) return null;
-            return cb.like(cb.lower(root.get("issuingBody")), "%" + issuingBody.trim().toLowerCase() + "%");
+            return cb.like(root.get("issuingBody"), "%" + issuingBody.trim() + "%");
         };
     }
 

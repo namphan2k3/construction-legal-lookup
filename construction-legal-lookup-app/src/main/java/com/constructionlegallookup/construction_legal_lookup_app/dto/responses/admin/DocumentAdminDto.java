@@ -21,4 +21,5 @@ public class DocumentAdminDto {
     LocalDate issuedDate;
     LocalDateTime deletedAt;
     String sourceUrl;
+    String contentHtml;
 }

@@ -24,7 +24,7 @@ public class GeminiService {
     @Value("${ai.api-key}")
     String apiKey;
 
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
 
     public String generateContent(String prompt) {
         try {
@@ -49,7 +49,17 @@ public class GeminiService {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
+            System.out.println("Gemini API Response Status: " + response.statusCode());
+            System.out.println("Gemini API Response Body: " + response.body());
+
             JsonNode rootNode = objectMapper.readTree(response.body());
+            
+            // Check for errors
+            if (rootNode.has("error")) {
+                JsonNode errorNode = rootNode.get("error");
+                return "Lỗi API: " + errorNode.get("message").asText();
+            }
+            
             JsonNode candidatesNode = rootNode.path("candidates");
             if (candidatesNode.isArray() && candidatesNode.size() > 0) {
                 JsonNode contentNode = candidatesNode.get(0).path("content");
@@ -58,7 +68,7 @@ public class GeminiService {
                     return partsNode.get(0).path("text").asText();
                 }
             }
-            return "Không thể tạo phản hồi";
+            return "Không thể tạo phản hồi - API response không có candidates";
         } catch (Exception e) {
             e.printStackTrace();
             return "Lỗi khi gọi API: " + e.getMessage();

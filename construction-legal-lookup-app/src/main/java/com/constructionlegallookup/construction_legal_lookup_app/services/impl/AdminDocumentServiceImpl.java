@@ -104,6 +104,62 @@ public class AdminDocumentServiceImpl implements AdminDocumentService {
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
+    public DocumentAdminDto createDocumentWithPdf(DocumentAdminRequest request, MultipartFile file) throws IOException {
+        Document document = documentMapper.toDocument(request);
+
+        String normalized = request.getDocumentNumber().toUpperCase().replace("Đ", "D");
+        document.setDocumentNumberNormalized(normalized);
+
+        if (request.getCategoryIds() != null) {
+            List<Category> categories = categoryRepository.findAllById(request.getCategoryIds());
+            document.setCategories(categories);
+        }
+
+        if (request.getTagIds() != null) {
+            List<Tag> tags = tagRepository.findAllById(request.getTagIds());
+            document.setTags(tags);
+        }
+
+        document.setViewCount(0);
+
+        // Save document first to get ID
+        Document saved = documentRepository.save(document);
+        Long documentId = saved.getId();
+
+        // Upload PDF to Cloudinary
+        String folderPath = "construction_legal_lookup/documents/" + documentId;
+
+        Map<?,?> result = cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap(
+                        "use_filename", true,
+                        "unique_filename", true,
+                        "folder", folderPath,
+                        "type", "upload",
+                        "resource_type", "raw"
+                ));
+
+        if(result.get("asset_id") == null || result.get("secure_url") == null){
+            throw new AppException(ErrorCode.UPLOAD_FILE_FAILED);
+        }
+
+        String pdfUrl = (String) result.get("secure_url");
+        String pdfFileName = (String) result.get("display_name");
+        Long pdfSizeBytes = ((Number) result.get("bytes")).longValue();
+
+        // Extract text from PDF
+        String extractedText = pdfExtractionService.extractText(file.getInputStream());
+        saved.setPdfUrl(pdfUrl);
+        saved.setPdfFileName(pdfFileName);
+        saved.setPdfSizeBytes(pdfSizeBytes);
+        saved.setContentText(extractedText);
+        saved.setSearchText(extractedText);
+
+        return documentMapper.toDocumentAdminDto(documentRepository.save(saved));
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public DocumentAdminDto updateDocument(Long id, DocumentAdminRequest request) {
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.DOCUMENT_NOT_FOUND));

@@ -16,6 +16,8 @@ public interface AdminDocumentService {
                                             String status, Integer year, Boolean includeDeleted, Pageable pageable);
     
     DocumentAdminDto createDocument(DocumentAdminRequest request);
+
+    DocumentAdminDto createDocumentWithPdf(DocumentAdminRequest request, MultipartFile file) throws IOException;
     
     DocumentAdminDto updateDocument(Long id, DocumentAdminRequest request);
     

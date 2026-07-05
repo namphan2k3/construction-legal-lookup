@@ -50,6 +50,7 @@ public class DocumentAdminRequest {
     String status;
 
     String contentText;
+    String contentHtml;
     String sourceUrl;
     List<Long> categoryIds;
     List<Long> tagIds;

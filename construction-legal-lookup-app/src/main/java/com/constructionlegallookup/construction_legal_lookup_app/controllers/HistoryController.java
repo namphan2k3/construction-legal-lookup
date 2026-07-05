@@ -23,7 +23,7 @@ public class HistoryController {
     private final LocalizationUtils localizationUtils;
 
     @GetMapping("/search")
-    public ApiResponse<Page<SearchHistoryResponse>> getSearchHistory(@PageableDefault(size = 20, sort = "createdAt,desc") Pageable pageable) {
+    public ApiResponse<Page<SearchHistoryResponse>> getSearchHistory(@PageableDefault(size = 20) Pageable pageable) {
         Page<SearchHistoryResponse> history = historyService.getSearchHistory(pageable);
         return ApiResponse.<Page<SearchHistoryResponse>>builder()
                 .message(localizationUtils.getLocalizedMessage(MessageKeys.SEARCH_HISTORY_LIST_SUCCESS))
@@ -40,7 +40,7 @@ public class HistoryController {
     }
 
     @GetMapping("/views")
-    public ApiResponse<Page<ViewHistoryResponse>> getViewHistory(@PageableDefault(size = 20, sort = "createdAt,desc") Pageable pageable) {
+    public ApiResponse<Page<ViewHistoryResponse>> getViewHistory(@PageableDefault(size = 20) Pageable pageable) {
         Page<ViewHistoryResponse> history = historyService.getViewHistory(pageable);
         return ApiResponse.<Page<ViewHistoryResponse>>builder()
                 .message(localizationUtils.getLocalizedMessage(MessageKeys.VIEW_HISTORY_LIST_SUCCESS))

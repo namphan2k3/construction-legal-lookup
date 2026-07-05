@@ -38,11 +38,14 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
     @Query("SELECT DISTINCT YEAR(d.issuedDate) FROM Document d WHERE d.deletedAt IS NULL ORDER BY YEAR(d.issuedDate) DESC")
     List<Integer> findDistinctYears();
 
-    @Query("SELECT d FROM Document d WHERE d.deletedAt IS NULL AND (LOWER(d.documentNumberNormalized) LIKE :pattern OR LOWER(d.title) LIKE :pattern) ORDER BY CASE WHEN LOWER(d.documentNumberNormalized) LIKE :prefixPattern THEN 0 ELSE 1 END ASC, d.viewCount DESC")
+    @Query("SELECT d FROM Document d WHERE d.deletedAt IS NULL AND (d.documentNumberNormalized LIKE :pattern OR d.title LIKE :pattern) ORDER BY CASE WHEN d.documentNumberNormalized LIKE :prefixPattern THEN 0 ELSE 1 END ASC, d.viewCount DESC")
     List<Document> suggestDocuments(@Param("pattern") String pattern, @Param("prefixPattern") String prefixPattern, Pageable pageable);
 
     @Query("SELECT d FROM Document d WHERE d.deletedAt IS NULL ORDER BY d.viewCount DESC")
     List<Document> findTopDocuments(Pageable pageable);
+
+    @Query("SELECT d FROM Document d WHERE d.deletedAt IS NULL AND (d.title LIKE CONCAT('%', :query, '%') OR d.contentText LIKE CONCAT('%', :query, '%')) ORDER BY d.viewCount DESC")
+    List<Document> searchRelevantDocuments(@Param("query") String query, Pageable pageable);
 
     long countByDeletedAtIsNull();
 }

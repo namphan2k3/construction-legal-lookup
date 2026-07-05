@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.admin.UpdateRoleRequest;
+import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.admin.CreateUserRequest;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.responses.admin.AdminUserDto;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.responses.common.ApiResponse;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.responses.common.PaginationInfo;
@@ -30,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @RestController
-@RequestMapping("/api/admin/users")
+@RequestMapping("/admin/users")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Tag(name = "Admin - Users", description = "Admin user management")
@@ -95,5 +97,16 @@ public class AdminUserController {
                 .success(true)
                 .build();
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AdminUserDto>> createUser(@Valid @RequestBody CreateUserRequest request) {
+        AdminUserDto created = adminUserService.createUser(request);
+        ApiResponse<AdminUserDto> response = ApiResponse.<AdminUserDto>builder()
+                .success(true)
+                .data(created)
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

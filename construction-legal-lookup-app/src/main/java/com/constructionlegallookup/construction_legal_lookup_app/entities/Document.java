@@ -83,6 +83,10 @@ public class Document extends BaseEntity {
     String contentText;
 
     @Lob
+    @Column(name = "content_html", columnDefinition = "LONGTEXT")
+    String contentHtml;
+
+    @Lob
     @Column(name = "search_text", columnDefinition = "LONGTEXT")
     String searchText;
 

@@ -18,10 +18,6 @@ public interface DocumentService {
 
     DocumentDetailResponse getDocumentDetail(Long id, String highlightKeyword);
 
-    DocumentRelationsResponse getDocumentRelations(Long id);
-
-    List<SectionDto> getDocumentSections(Long id);
-
     String downloadDocumentPdf(Long id); // Returns the PDF URL for redirect
 
     DocumentFilterResponse getFilters();

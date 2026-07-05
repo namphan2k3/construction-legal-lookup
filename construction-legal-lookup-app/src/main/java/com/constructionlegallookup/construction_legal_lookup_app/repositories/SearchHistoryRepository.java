@@ -17,6 +17,7 @@ public interface SearchHistoryRepository extends JpaRepository<SearchHistory, Lo
     List<SearchHistory> findByUserIdOrderByCreatedAtDesc(Long userId);
     Page<SearchHistory> findByUserId(Long userId, Pageable pageable);
     void deleteByUserId(Long userId);
+    boolean existsByUserIdAndQueryAndCreatedAtAfter(Long userId, String query, LocalDateTime createdAt);
 
     @Query("SELECT s.query, COUNT(s) AS cnt FROM SearchHistory s " +
            "WHERE s.createdAt >= :startDate " +

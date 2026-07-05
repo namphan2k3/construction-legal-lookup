@@ -32,6 +32,7 @@ CREATE TABLE documents (
     pdf_file_name               VARCHAR(255)    NULL,
     pdf_size_bytes              BIGINT          NULL,
     content_text                LONGTEXT        NULL,
+    content_html                LONGTEXT        NULL,
     search_text                 LONGTEXT        NULL,
     source_url                  VARCHAR(500)    NULL,
     view_count                  INT             NOT NULL DEFAULT 0,
@@ -48,42 +49,6 @@ CREATE TABLE documents (
     KEY idx_documents_view_count (view_count),
     KEY idx_documents_updated_at (updated_at),
     FULLTEXT KEY ft_documents_search (title, abstract, content_text)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE document_sections (
-    id            BIGINT          NOT NULL AUTO_INCREMENT,
-    document_id   BIGINT          NOT NULL,
-    parent_id     BIGINT          NULL,
-    section_type  VARCHAR(20)     NOT NULL,
-    number_label  VARCHAR(50)     NULL,
-    title         VARCHAR(500)    NULL,
-    content       TEXT            NULL,
-    order_index   INT             NOT NULL DEFAULT 0,
-    anchor_slug   VARCHAR(100)    NULL,
-    created_at    DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    updated_at    DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    PRIMARY KEY (id),
-    KEY idx_sections_document_id (document_id),
-    KEY idx_sections_parent_id (parent_id),
-    KEY idx_sections_document_order (document_id, order_index),
-    KEY idx_sections_number_label (document_id, number_label),
-    CONSTRAINT fk_sections_document_id FOREIGN KEY (document_id) REFERENCES documents (id) ON DELETE CASCADE,
-    CONSTRAINT fk_sections_parent_id FOREIGN KEY (parent_id) REFERENCES document_sections (id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE document_relations (
-    id                  BIGINT          NOT NULL AUTO_INCREMENT,
-    source_document_id  BIGINT          NOT NULL,
-    target_document_id  BIGINT          NOT NULL,
-    relation_type       VARCHAR(30)     NOT NULL,
-    note                VARCHAR(500)    NULL,
-    created_at          DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    PRIMARY KEY (id),
-    UNIQUE KEY uk_relations_unique (source_document_id, target_document_id, relation_type),
-    KEY idx_relations_source (source_document_id, relation_type),
-    KEY idx_relations_target (target_document_id, relation_type),
-    CONSTRAINT fk_relations_source FOREIGN KEY (source_document_id) REFERENCES documents (id) ON DELETE CASCADE,
-    CONSTRAINT fk_relations_target FOREIGN KEY (target_document_id) REFERENCES documents (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE categories (

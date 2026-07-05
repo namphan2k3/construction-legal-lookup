@@ -4,8 +4,10 @@ import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
 
+import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.GeneralChatRequest;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.ai.AiAskRequest;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.ai.AiExplainRequest;
+import com.constructionlegallookup.construction_legal_lookup_app.dto.responses.GeneralChatResponse;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.responses.ai.*;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.responses.common.ApiResponse;
 import com.constructionlegallookup.construction_legal_lookup_app.services.AiService;
@@ -55,6 +57,14 @@ public class AiController {
     public ApiResponse<AiQuotaResponse> getQuota() {
         AiQuotaResponse response = aiService.getQuota();
         return ApiResponse.<AiQuotaResponse>builder()
+                .data(response)
+                .build();
+    }
+
+    @PostMapping("/general-chat")
+    public ApiResponse<GeneralChatResponse> generalChat(@Valid @RequestBody GeneralChatRequest request) {
+        GeneralChatResponse response = aiService.generalChat(request);
+        return ApiResponse.<GeneralChatResponse>builder()
                 .data(response)
                 .build();
     }

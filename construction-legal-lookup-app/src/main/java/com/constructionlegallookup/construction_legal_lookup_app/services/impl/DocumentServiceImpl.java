@@ -21,7 +21,6 @@ import com.constructionlegallookup.construction_legal_lookup_app.entities.*;
 import com.constructionlegallookup.construction_legal_lookup_app.enums.AuditEventType;
 import com.constructionlegallookup.construction_legal_lookup_app.enums.DocumentStatus;
 import com.constructionlegallookup.construction_legal_lookup_app.enums.DocumentType;
-import com.constructionlegallookup.construction_legal_lookup_app.enums.RelationType;
 import com.constructionlegallookup.construction_legal_lookup_app.exceptions.AppException;
 import com.constructionlegallookup.construction_legal_lookup_app.exceptions.ErrorCode;
 import com.constructionlegallookup.construction_legal_lookup_app.mappers.DocumentMapper;
@@ -40,8 +39,6 @@ import lombok.experimental.FieldDefaults;
 public class DocumentServiceImpl implements DocumentService {
 
     DocumentRepository documentRepository;
-    DocumentSectionRepository documentSectionRepository;
-    DocumentRelationRepository documentRelationRepository;
     BookmarkRepository bookmarkRepository;
     SearchHistoryRepository searchHistoryRepository;
     ViewHistoryRepository viewHistoryRepository;
@@ -120,19 +117,29 @@ public class DocumentServiceImpl implements DocumentService {
         Document doc = documentRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy văn bản với id=" + id));
 
-        // Increment view count
-        doc.setViewCount(doc.getViewCount() + 1);
-        documentRepository.save(doc);
-
         Long userId = getCurrentUserIdOrNull();
 
         // Save view history if logged in
         if (userId != null) {
-            ViewHistory history = ViewHistory.builder()
-                    .user(User.builder().id(userId).build())
-                    .document(doc)
-                    .build();
-            viewHistoryRepository.save(history);
+            // Check if user already viewed this document recently (within 1 minute)
+            LocalDateTime oneMinuteAgo = LocalDateTime.now().minusMinutes(1);
+            boolean recentView = viewHistoryRepository.existsByUserIdAndDocumentIdAndCreatedAtAfter(userId, id, oneMinuteAgo);
+            
+            if (!recentView) {
+                // Only increment view count if not viewed recently
+                doc.setViewCount(doc.getViewCount() + 1);
+                documentRepository.save(doc);
+                
+                ViewHistory history = ViewHistory.builder()
+                        .user(User.builder().id(userId).build())
+                        .document(doc)
+                        .build();
+                viewHistoryRepository.save(history);
+            }
+        } else {
+            // For anonymous users, always increment view count
+            doc.setViewCount(doc.getViewCount() + 1);
+            documentRepository.save(doc);
         }
 
         // Save audit log
@@ -166,123 +173,6 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
         return response;
-    }
-
-    @Override
-    public DocumentRelationsResponse getDocumentRelations(Long id) {
-        if (!documentRepository.existsById(id)) {
-            throw new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy văn bản với id=" + id);
-        }
-
-        List<DocumentRelation> sourceRelations = documentRelationRepository.findBySourceDocumentId(id);
-        List<DocumentRelation> targetRelations = documentRelationRepository.findByTargetDocumentId(id);
-
-        List<RelationDto> guidedBy = new ArrayList<>();
-        List<RelationDto> guides = new ArrayList<>();
-        List<RelationDto> amendedBy = new ArrayList<>();
-        List<RelationDto> amends = new ArrayList<>();
-        List<RelationDto> replaces = new ArrayList<>();
-        List<RelationDto> replacedBy = new ArrayList<>();
-        List<RelationDto> related = new ArrayList<>();
-
-        for (DocumentRelation r : sourceRelations) {
-            RelationDto dto = RelationDto.builder()
-                    .id(r.getId())
-                    .sourceDocumentId(r.getSourceDocument().getId())
-                    .targetDocumentId(r.getTargetDocument().getId())
-                    .relationType(r.getRelationType().name())
-                    .note(r.getNote())
-                    .document(documentMapper.toDocumentBriefDto(r.getTargetDocument()))
-                    .build();
-
-            switch (r.getRelationType()) {
-                case GUIDED_BY -> guidedBy.add(dto);
-                case GUIDES -> guides.add(dto);
-                case AMENDED_BY -> amendedBy.add(dto);
-                case AMENDS -> amends.add(dto);
-                case REPLACES -> replaces.add(dto);
-                case REPLACED_BY -> replacedBy.add(dto);
-                case RELATED -> related.add(dto);
-            }
-        }
-
-        for (DocumentRelation r : targetRelations) {
-            // Reverse direction: target is current doc, so source is the related document
-            RelationDto dto = RelationDto.builder()
-                    .id(r.getId())
-                    .sourceDocumentId(r.getSourceDocument().getId())
-                    .targetDocumentId(r.getTargetDocument().getId())
-                    .relationType(r.getRelationType().name())
-                    .note(r.getNote())
-                    .document(documentMapper.toDocumentBriefDto(r.getSourceDocument()))
-                    .build();
-
-            // Reverse relationship type naming for public output mapping
-            switch (r.getRelationType()) {
-                case GUIDED_BY -> guides.add(dto);     // source is guided by target (us) -> target (us) guides source
-                case GUIDES -> guidedBy.add(dto);      // source guides target (us) -> target (us) is guided by source
-                case AMENDED_BY -> amends.add(dto);    // source is amended by target (us) -> target (us) amends source
-                case AMENDS -> amendedBy.add(dto);      // source amends target (us) -> target (us) is amended by source
-                case REPLACES -> replacedBy.add(dto);  // source replaces target (us) -> target (us) is replaced by source
-                case REPLACED_BY -> replaces.add(dto);  // source is replaced by target (us) -> target (us) replaces source
-                case RELATED -> related.add(dto);
-            }
-        }
-
-        return DocumentRelationsResponse.builder()
-                .documentId(id)
-                .relations(DocumentRelationsResponse.RelationsGroup.builder()
-                        .guidedBy(guidedBy)
-                        .guides(guides)
-                        .amendedBy(amendedBy)
-                        .amends(amends)
-                        .replaces(replaces)
-                        .replacedBy(replacedBy)
-                        .related(related)
-                        .build())
-                .build();
-    }
-
-    @Override
-    public List<SectionDto> getDocumentSections(Long id) {
-        if (!documentRepository.existsById(id)) {
-            throw new AppException(ErrorCode.NOT_FOUND, "Không tìm thấy văn bản với id=" + id);
-        }
-
-        List<DocumentSection> sections = documentSectionRepository.findByDocumentIdOrderByOrderIndexAsc(id);
-        List<SectionDto> dtoList = sections.stream().map(s -> SectionDto.builder()
-                .id(s.getId())
-                .sectionType(s.getSectionType().name())
-                .numberLabel(s.getNumberLabel())
-                .title(s.getTitle())
-                .content(s.getContent())
-                .orderIndex(s.getOrderIndex())
-                .anchorSlug(s.getAnchorSlug())
-                .children(new ArrayList<>())
-                .build()
-        ).collect(Collectors.toList());
-
-        // Map parent relationship
-        Map<Long, SectionDto> map = dtoList.stream().collect(Collectors.toMap(SectionDto::getId, s -> s));
-        List<SectionDto> roots = new ArrayList<>();
-
-        for (int i = 0; i < sections.size(); i++) {
-            DocumentSection sEntity = sections.get(i);
-            SectionDto sDto = dtoList.get(i);
-
-            if (sEntity.getParent() == null) {
-                roots.add(sDto);
-            } else {
-                SectionDto parentDto = map.get(sEntity.getParent().getId());
-                if (parentDto != null) {
-                    parentDto.getChildren().add(sDto);
-                } else {
-                    roots.add(sDto); // Fallback if parent missing in list
-                }
-            }
-        }
-
-        return roots;
     }
 
     @Override
@@ -365,14 +255,20 @@ public class DocumentServiceImpl implements DocumentService {
         // Save SearchHistory if user logged in
         if (userId != null && q != null && !q.isBlank()) {
             try {
-                String filtersJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(params);
-                SearchHistory history = SearchHistory.builder()
-                        .user(User.builder().id(userId).build())
-                        .query(q)
-                        .filtersJson(filtersJson)
-                        .resultCount(results)
-                        .build();
-                searchHistoryRepository.save(history);
+                // Check if user already searched with same query recently (within 1 minute)
+                LocalDateTime oneMinuteAgo = LocalDateTime.now().minusMinutes(1);
+                boolean recentSearch = searchHistoryRepository.existsByUserIdAndQueryAndCreatedAtAfter(userId, q, oneMinuteAgo);
+                
+                if (!recentSearch) {
+                    String filtersJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(params);
+                    SearchHistory history = SearchHistory.builder()
+                            .user(User.builder().id(userId).build())
+                            .query(q)
+                            .filtersJson(filtersJson)
+                            .resultCount(results)
+                            .build();
+                    searchHistoryRepository.save(history);
+                }
             } catch (Exception ignored) {}
         }
 
