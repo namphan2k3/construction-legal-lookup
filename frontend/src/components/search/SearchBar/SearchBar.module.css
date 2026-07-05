@@ -1,0 +1,200 @@
+.searchBar {
+  position: relative;
+  width: 100%;
+}
+
+.searchBar__wrapper {
+  display: flex;
+  background: var(--color-bg-elevated);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.searchBar__wrapper:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(26, 54, 93, 0.12), var(--shadow-md);
+}
+
+.searchBar__input {
+  flex: 1;
+  border: none;
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  background: transparent;
+  color: var(--color-text);
+  min-width: 0;
+}
+
+.searchBar__input:focus {
+  outline: none;
+}
+
+.searchBar__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.searchBar__submit {
+  padding: 0 1.75rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: all var(--transition);
+  white-space: nowrap;
+  position: relative;
+}
+
+.searchBar__submit:hover {
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.searchBar__submit:active {
+  transform: translateY(0);
+}
+
+.searchBar--lg .searchBar__input {
+  padding: 1.25rem 1.5rem;
+  font-size: 1.125rem;
+}
+
+.searchBar--lg .searchBar__submit {
+  padding: 0 2.25rem;
+  font-size: 1rem;
+}
+
+.searchBar__suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  list-style: none;
+  max-height: 360px;
+  overflow-y: auto;
+  z-index: 50;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.searchBar__suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  transition: all var(--transition);
+}
+
+.searchBar__suggestion:last-child {
+  border-bottom: none;
+}
+
+.searchBar__suggestion:hover {
+  background: var(--color-bg-muted);
+  padding-left: 1.5rem;
+}
+
+.searchBar__suggestionNumber {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  letter-spacing: 0.02em;
+}
+
+.searchBar__suggestionTitle {
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.searchBar__historyHeader {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--color-bg-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.searchBar__suggestionQuery {
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.searchBar__historyFooter {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+}
+
+.searchBar__viewAllBtn {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-weight: 500;
+}
+
+.searchBar__viewAllBtn:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .searchBar__wrapper {
+    flex-direction: column;
+    border-radius: var(--radius-md);
+  }
+
+  .searchBar__input {
+    padding: 0.875rem 1rem;
+  }
+
+  .searchBar__submit {
+    padding: 0.875rem;
+    border-top: 1px solid var(--color-border);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+  }
+
+  .searchBar--lg .searchBar__input {
+    padding: 1rem 1.125rem;
+    font-size: 1rem;
+  }
+
+  .searchBar--lg .searchBar__submit {
+    padding: 1rem;
+    font-size: 0.9375rem;
+  }
+}

@@ -1,0 +1,67 @@
+.actions {
+  margin-bottom: var(--space-lg);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.searchList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.searchItem {
+  padding: var(--space-lg);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  cursor: pointer;
+}
+
+.searchItem:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.searchItem__query {
+  font-size: 1rem;
+  color: var(--color-primary-dark);
+  margin-bottom: var(--space-sm);
+  font-weight: 600;
+}
+
+.searchItem__meta {
+  display: flex;
+  gap: var(--space-md);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  align-items: center;
+}
+
+.searchItem__date {
+  font-weight: 500;
+}
+
+.searchItem__count {
+  padding: 0.25rem 0.5rem;
+  background: var(--color-bg-muted);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .actions {
+    justify-content: stretch;
+  }
+
+  .searchItem__meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+}
