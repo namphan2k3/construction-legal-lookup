@@ -5,7 +5,7 @@ import { LoadingOverlay } from '@/components/common/Spinner/Spinner';
 import { Badge } from '@/components/common/Badge/Badge';
 import { Modal } from '@/components/common/Modal/Modal';
 import { ConfirmModal } from '@/components/common/ConfirmModal/ConfirmModal';
-import { getUsers, disableUser, enableUser, updateUserRole, createUser } from '@/services/admin.service';
+import { getUsers, disableUser, enableUser, updateUserRole, createUser, updateUser } from '@/services/admin.service';
 import { formatDate } from '@/utils/formatters';
 import styles from './AdminUsersPage.module.css';
 
@@ -20,11 +20,20 @@ export default function AdminUsersPage() {
     enabled: '',
   });
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [createFormData, setCreateFormData] = useState({
     email: '',
     password: '',
     fullName: '',
     role: 'USER',
+  });
+  const [editFormData, setEditFormData] = useState({
+    id: null,
+    email: '',
+    password: '',
+    fullName: '',
+    role: 'USER',
+    enabled: true,
   });
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -107,6 +116,43 @@ export default function AdminUsersPage() {
     } catch (error) {
       console.error('Failed to create user:', error);
       alert('Không thể tạo user');
+    }
+  };
+
+  const handleEdit = (user) => {
+    setEditFormData({
+      id: user.id,
+      email: user.email,
+      password: '',
+      fullName: user.fullName || '',
+      role: user.role,
+      enabled: user.enabled,
+    });
+    setShowEditForm(true);
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    try {
+      const updateData = { ...editFormData };
+      delete updateData.id;
+      if (!updateData.password) {
+        delete updateData.password;
+      }
+      await updateUser(editFormData.id, updateData);
+      setShowEditForm(false);
+      setEditFormData({
+        id: null,
+        email: '',
+        password: '',
+        fullName: '',
+        role: 'USER',
+        enabled: true,
+      });
+      loadUsers();
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      alert('Không thể cập nhật user');
     }
   };
 
@@ -200,14 +246,13 @@ export default function AdminUsersPage() {
                       </div>
                       <div className={styles.tableCell}>
                         <div className={styles.actions}>
-                          <select
-                            value={user.role}
-                            onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                            className={styles.roleSelect}
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleEdit(user)}
                           >
-                            <option value="USER">USER</option>
-                            <option value="ADMIN">ADMIN</option>
-                          </select>
+                            Sửa
+                          </Button>
                           {user.enabled ? (
                             <Button
                               variant="danger"
@@ -324,6 +369,83 @@ export default function AdminUsersPage() {
               type="button"
               variant="secondary"
               onClick={() => setShowCreateForm(false)}
+            >
+              Hủy
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={showEditForm}
+        onClose={() => setShowEditForm(false)}
+        title="Sửa user"
+        size="md"
+      >
+        <form onSubmit={handleUpdateUser} className={styles.modalForm}>
+          <div className={styles.formGrid}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Email</label>
+              <input
+                type="email"
+                value={editFormData.email}
+                onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                className={styles.formInput}
+                placeholder="user@example.com"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Mật khẩu (để trống nếu không đổi)</label>
+              <input
+                type="password"
+                minLength={6}
+                value={editFormData.password}
+                onChange={(e) => setEditFormData({ ...editFormData, password: e.target.value })}
+                className={styles.formInput}
+                placeholder="Ít nhất 6 ký tự"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Họ tên</label>
+              <input
+                type="text"
+                value={editFormData.fullName}
+                onChange={(e) => setEditFormData({ ...editFormData, fullName: e.target.value })}
+                className={styles.formInput}
+                placeholder="Nguyễn Văn A"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Role</label>
+              <select
+                value={editFormData.role}
+                onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
+                className={styles.formInput}
+              >
+                <option value="USER">USER</option>
+                <option value="ADMIN">ADMIN</option>
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Trạng thái</label>
+              <select
+                value={editFormData.enabled ? 'true' : 'false'}
+                onChange={(e) => setEditFormData({ ...editFormData, enabled: e.target.value === 'true' })}
+                className={styles.formInput}
+              >
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Đã khóa</option>
+              </select>
+            </div>
+          </div>
+          <div className={styles.formActions}>
+            <Button type="submit" variant="primary">
+              Cập nhật
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowEditForm(false)}
             >
               Hủy
             </Button>

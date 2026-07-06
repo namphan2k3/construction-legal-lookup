@@ -10,6 +10,7 @@ import {
   deleteDocument,
   restoreDocument,
   createDocument,
+  getCategories,
 } from '@/services/admin.service';
 import { formatDate, getDocumentTypeLabel, getStatusLabel, getStatusVariant } from '@/utils/formatters';
 import styles from './AdminDocumentsPage.module.css';
@@ -22,6 +23,9 @@ export default function AdminDocumentsPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [includeDeleted, setIncludeDeleted] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingDocument, setEditingDocument] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [createFormData, setCreateFormData] = useState({
     documentNumber: '',
     title: '',
@@ -38,10 +42,32 @@ export default function AdminDocumentsPage() {
     categoryIds: [],
     tagIds: [],
   });
+  const [editFormData, setEditFormData] = useState({
+    documentNumber: '',
+    title: '',
+    abstractText: '',
+    documentType: 'LUAT',
+    issuingBody: '',
+    signer: '',
+    issuedDate: '',
+    effectiveDate: '',
+    expiryDate: '',
+    status: 'CON_HIEU_LUC',
+    sourceUrl: '',
+    categoryIds: [],
+    tagIds: [],
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   useEffect(() => {
     loadDocuments();
-  }, [page, includeDeleted]);
+  }, [page, includeDeleted, searchQuery, filterType, filterStatus]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
   const loadDocuments = async () => {
     setLoading(true);
@@ -51,13 +77,26 @@ export default function AdminDocumentsPage() {
         size: 20,
         includeDeleted,
       };
+      if (searchQuery) params.q = searchQuery;
+      if (filterType) params.documentType = filterType;
+      if (filterStatus) params.status = filterStatus;
       const data = await getAdminDocuments(params);
+      console.log('Documents API response:', data);
       setDocuments(data.content || []);
       setTotalPages(data.totalPages || 0);
     } catch (error) {
       console.error('Failed to load documents:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const data = await getCategories();
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Failed to load categories:', error);
     }
   };
 
@@ -82,6 +121,39 @@ export default function AdminDocumentsPage() {
     }
   };
 
+  const handleEdit = (doc) => {
+    setEditingDocument(doc);
+    setEditFormData({
+      documentNumber: doc.documentNumber || '',
+      title: doc.title || '',
+      abstractText: doc.abstractText || '',
+      documentType: doc.documentType || 'LUAT',
+      issuingBody: doc.issuingBody || '',
+      signer: doc.signer || '',
+      issuedDate: doc.issuedDate || '',
+      effectiveDate: doc.effectiveDate || '',
+      expiryDate: doc.expiryDate || '',
+      status: doc.status || 'CON_HIEU_LUC',
+      sourceUrl: doc.sourceUrl || '',
+      categoryIds: doc.categoryIds || [],
+      tagIds: doc.tagIds || [],
+    });
+    setShowEditForm(true);
+  };
+
+  const handleUpdateDocument = async (e) => {
+    e.preventDefault();
+    try {
+      await updateDocument(editingDocument.id, editFormData);
+      setShowEditForm(false);
+      setEditingDocument(null);
+      loadDocuments();
+    } catch (error) {
+      console.error('Failed to update document:', error);
+      alert('Không thể cập nhật văn bản');
+    }
+  };
+
   const handleCreateDocument = async (e) => {
     e.preventDefault();
     try {
@@ -97,11 +169,20 @@ export default function AdminDocumentsPage() {
       formData.append('expiryDate', createFormData.expiryDate);
       formData.append('status', createFormData.status);
       formData.append('file', createFormData.pdfFile);
-      formData.append('sourceUrl', createFormData.sourceUrl);
-      createFormData.categoryIds.forEach(id => formData.append('categoryIds', id));
-      createFormData.tagIds.forEach(id => formData.append('tagIds', id));
+      if (createFormData.sourceUrl) {
+        formData.append('sourceUrl', createFormData.sourceUrl);
+      }
 
-      const created = await createDocument(formData);
+      // Build params for categoryIds and tagIds
+      const params = {};
+      if (createFormData.categoryIds.length > 0) {
+        params.categoryIds = createFormData.categoryIds;
+      }
+      if (createFormData.tagIds.length > 0) {
+        params.tagIds = createFormData.tagIds;
+      }
+
+      const created = await createDocument(formData, params);
       setShowCreateForm(false);
       setCreateFormData({
         documentNumber: '',
@@ -146,6 +227,39 @@ export default function AdminDocumentsPage() {
 
         <Card padding="md">
           <div className={styles.filters}>
+            <input
+              type="text"
+              placeholder="Tìm kiếm văn bản..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+            />
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="">Tất cả loại</option>
+              <option value="LUAT">Luật</option>
+              <option value="NGHI_DINH">Nghị định</option>
+              <option value="THONG_TU">Thông tư</option>
+              <option value="QUYET_DINH">Quyết định</option>
+              <option value="QCVN">QCVN</option>
+              <option value="TCVN">TCVN</option>
+              <option value="CONG_VAN">Công văn</option>
+              <option value="KHAC">Khác</option>
+            </select>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="CON_HIEU_LUC">Còn hiệu lực</option>
+              <option value="HET_HIEU_LUC">Hết hiệu lực</option>
+              <option value="CHUA_CO_HIEU_LUC">Chưa có hiệu lực</option>
+              <option value="HET_HIEU_LUC_MOT_PHAN">Hết hiệu lực một phần</option>
+            </select>
             <label className={styles.checkboxLabel}>
               <input
                 type="checkbox"
@@ -203,7 +317,11 @@ export default function AdminDocumentsPage() {
                       </div>
                       <div className={styles.tableCell}>
                         <div className={styles.actions}>
-                          <Button variant="secondary" size="sm">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleEdit(doc)}
+                          >
                             Sửa
                           </Button>
                           {doc.deletedAt ? (
@@ -393,6 +511,34 @@ export default function AdminDocumentsPage() {
                 placeholder="https://..."
               />
             </div>
+            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+              <label className={styles.formLabel}>Danh mục</label>
+              <div className={styles.checkboxGroup}>
+                {categories.map((category) => (
+                  <label key={category.id} className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={createFormData.categoryIds.includes(category.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setCreateFormData({
+                            ...createFormData,
+                            categoryIds: [...createFormData.categoryIds, category.id]
+                          });
+                        } else {
+                          setCreateFormData({
+                            ...createFormData,
+                            categoryIds: createFormData.categoryIds.filter(id => id !== category.id)
+                          });
+                        }
+                      }}
+                      className={styles.checkbox}
+                    />
+                    {category.name}
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
           <div className={styles.formActions}>
             <Button type="submit" variant="primary">
@@ -402,6 +548,170 @@ export default function AdminDocumentsPage() {
               type="button"
               variant="secondary"
               onClick={() => setShowCreateForm(false)}
+            >
+              Hủy
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={showEditForm}
+        onClose={() => setShowEditForm(false)}
+        title="Sửa văn bản"
+        size="xl"
+      >
+        <form onSubmit={handleUpdateDocument} className={styles.modalForm}>
+          <div className={styles.formGrid}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Số hiệu *</label>
+              <input
+                type="text"
+                required
+                value={editFormData.documentNumber}
+                onChange={(e) => setEditFormData({ ...editFormData, documentNumber: e.target.value })}
+                className={styles.formInput}
+                placeholder="VD: 123/2024/BXD"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Tiêu đề *</label>
+              <input
+                type="text"
+                required
+                value={editFormData.title}
+                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                className={styles.formInput}
+                placeholder="Tiêu đề văn bản"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Loại văn bản *</label>
+              <select
+                required
+                value={editFormData.documentType}
+                onChange={(e) => setEditFormData({ ...editFormData, documentType: e.target.value })}
+                className={styles.formInput}
+              >
+                <option value="LUAT">Luật</option>
+                <option value="NGHI_DINH">Nghị định</option>
+                <option value="THONG_TU">Thông tư</option>
+                <option value="QUYET_DINH">Quyết định</option>
+                <option value="QCVN">QCVN</option>
+                <option value="TCVN">TCVN</option>
+                <option value="CONG_VAN">Công văn</option>
+                <option value="KHAC">Khác</option>
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Cơ quan ban hành</label>
+              <input
+                type="text"
+                value={editFormData.issuingBody}
+                onChange={(e) => setEditFormData({ ...editFormData, issuingBody: e.target.value })}
+                className={styles.formInput}
+                placeholder="Bộ Xây dựng"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Người ký</label>
+              <input
+                type="text"
+                value={editFormData.signer}
+                onChange={(e) => setEditFormData({ ...editFormData, signer: e.target.value })}
+                className={styles.formInput}
+                placeholder="Tên người ký"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Ngày ban hành *</label>
+              <input
+                type="date"
+                required
+                value={editFormData.issuedDate}
+                onChange={(e) => setEditFormData({ ...editFormData, issuedDate: e.target.value })}
+                className={styles.formInput}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Ngày hiệu lực</label>
+              <input
+                type="date"
+                value={editFormData.effectiveDate}
+                onChange={(e) => setEditFormData({ ...editFormData, effectiveDate: e.target.value })}
+                className={styles.formInput}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Ngày hết hiệu lực</label>
+              <input
+                type="date"
+                value={editFormData.expiryDate}
+                onChange={(e) => setEditFormData({ ...editFormData, expiryDate: e.target.value })}
+                className={styles.formInput}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Trạng thái *</label>
+              <select
+                required
+                value={editFormData.status}
+                onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                className={styles.formInput}
+              >
+                <option value="CON_HIEU_LUC">Còn hiệu lực</option>
+                <option value="HET_HIEU_LUC">Hết hiệu lực</option>
+                <option value="CHUA_CO_HIEU_LUC">Chưa có hiệu lực</option>
+                <option value="HET_HIEU_LUC_MOT_PHAN">Hết hiệu lực một phần</option>
+              </select>
+            </div>
+            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+              <label className={styles.formLabel}>Nguồn</label>
+              <input
+                type="url"
+                value={editFormData.sourceUrl}
+                onChange={(e) => setEditFormData({ ...editFormData, sourceUrl: e.target.value })}
+                className={styles.formInput}
+                placeholder="https://..."
+              />
+            </div>
+            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+              <label className={styles.formLabel}>Danh mục</label>
+              <div className={styles.checkboxGroup}>
+                {categories.map((category) => (
+                  <label key={category.id} className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={editFormData.categoryIds.includes(category.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setEditFormData({
+                            ...editFormData,
+                            categoryIds: [...editFormData.categoryIds, category.id]
+                          });
+                        } else {
+                          setEditFormData({
+                            ...editFormData,
+                            categoryIds: editFormData.categoryIds.filter(id => id !== category.id)
+                          });
+                        }
+                      }}
+                      className={styles.checkbox}
+                    />
+                    {category.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className={styles.formActions}>
+            <Button type="submit" variant="primary">
+              Cập nhật văn bản
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowEditForm(false)}
             >
               Hủy
             </Button>

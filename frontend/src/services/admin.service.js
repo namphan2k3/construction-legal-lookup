@@ -49,15 +49,18 @@ export async function createUser(userData) {
   return data.data;
 }
 
+export async function updateUser(id, userData) {
+  const { data } = await api.put(`/admin/users/${id}`, userData);
+  return data.data;
+}
+
 export async function getAdminDocuments(params) {
   const { data } = await api.get('/admin/documents', { params });
   return data.data;
 }
 
-export async function createDocument(documentData) {
-  const { data } = await api.post('/admin/documents', documentData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+export async function createDocument(documentData, params) {
+  const { data } = await api.post('/admin/documents', documentData, { params });
   return data.data;
 }
 
@@ -79,9 +82,7 @@ export async function restoreDocument(id) {
 export async function uploadDocumentPdf(id, file) {
   const formData = new FormData();
   formData.append('file', file);
-  const { data } = await api.post(`/admin/documents/${id}/upload-pdf`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const { data } = await api.post(`/admin/documents/${id}/upload-pdf`, formData);
   return data.data;
 }
 

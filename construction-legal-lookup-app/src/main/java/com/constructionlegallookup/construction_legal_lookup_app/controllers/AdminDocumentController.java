@@ -96,8 +96,8 @@ public class AdminDocumentController {
             @RequestPart("status") String status,
             @RequestPart("file") MultipartFile file,
             @RequestPart(value = "sourceUrl", required = false) String sourceUrl,
-            @RequestPart(value = "categoryIds", required = false) java.util.List<Long> categoryIds,
-            @RequestPart(value = "tagIds", required = false) java.util.List<Long> tagIds) throws IOException {
+            @RequestParam(value = "categoryIds", required = false) java.util.List<Long> categoryIds,
+            @RequestParam(value = "tagIds", required = false) java.util.List<Long> tagIds) throws IOException {
         
         DocumentAdminRequest request = DocumentAdminRequest.builder()
                 .documentNumber(documentNumber)

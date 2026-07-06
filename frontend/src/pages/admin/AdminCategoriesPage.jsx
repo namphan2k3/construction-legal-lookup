@@ -3,6 +3,7 @@ import { Card } from '@/components/common/Card/Card';
 import { Button } from '@/components/common/Button/Button';
 import { LoadingOverlay } from '@/components/common/Spinner/Spinner';
 import { Badge } from '@/components/common/Badge/Badge';
+import { Modal } from '@/components/common/Modal/Modal';
 import {
   getCategories,
   createCategory,
@@ -16,6 +17,8 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -25,13 +28,19 @@ export default function AdminCategoriesPage() {
 
   useEffect(() => {
     loadCategories();
-  }, []);
+  }, [searchQuery]);
 
   const loadCategories = async () => {
     setLoading(true);
     try {
       const data = await getCategories();
-      setCategories(data || []);
+      const filtered = searchQuery 
+        ? data.filter(cat => 
+            cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            cat.slug.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : data;
+      setCategories(filtered || []);
     } catch (error) {
       console.error('Failed to load categories:', error);
     } finally {
@@ -64,6 +73,19 @@ export default function AdminCategoriesPage() {
       description: category.description || '',
       displayOrder: category.displayOrder || 0,
     });
+    setShowModal(true);
+  };
+
+  const handleCreate = () => {
+    setEditingId(null);
+    setFormData({ name: '', slug: '', description: '', displayOrder: 0 });
+    setShowModal(true);
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setFormData({ name: '', slug: '', description: '', displayOrder: 0 });
   };
 
   const handleDelete = async (id) => {
@@ -77,80 +99,33 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleCancel = () => {
-    setEditingId(null);
-    setFormData({ name: '', slug: '', description: '', displayOrder: 0 });
-  };
-
   return (
     <div className="page">
       <div className="container">
         <header className="page__header">
-          <h1 className="page__title">Quản lý danh mục</h1>
-          <p className="page__subtitle">
-            Quản lý danh mục phân loại văn bản pháp luật.
-          </p>
+          <div className={styles.header__top}>
+            <div>
+              <h1 className="page__title">Quản lý danh mục</h1>
+              <p className="page__subtitle">
+                Quản lý danh mục phân loại văn bản pháp luật.
+              </p>
+            </div>
+            <Button variant="primary" onClick={handleCreate}>
+              Tạo danh mục mới
+            </Button>
+          </div>
         </header>
 
         <Card padding="md">
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <h3 className={styles.formTitle}>
-              {editingId ? 'Sửa danh mục' : 'Tạo danh mục mới'}
-            </h3>
-            <div className={styles.formGrid}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Tên danh mục *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className={styles.input}
-                  placeholder="VD: Giấy phép xây dựng"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Slug *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  className={styles.input}
-                  placeholder="VD: giay-phep-xay-dung"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Thứ tự hiển thị</label>
-                <input
-                  type="number"
-                  value={formData.displayOrder}
-                  onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })}
-                  className={styles.input}
-                />
-              </div>
-              <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
-                <label className={styles.label}>Mô tả</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className={styles.textarea}
-                  rows={3}
-                  placeholder="Mô tả về danh mục..."
-                />
-              </div>
-            </div>
-            <div className={styles.formActions}>
-              <Button type="submit" variant="primary">
-                {editingId ? 'Cập nhật' : 'Tạo mới'}
-              </Button>
-              {editingId && (
-                <Button type="button" variant="secondary" onClick={handleCancel}>
-                  Hủy
-                </Button>
-              )}
-            </div>
-          </form>
+          <div className={styles.searchSection}>
+            <input
+              type="text"
+              placeholder="Tìm kiếm danh mục..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
         </Card>
 
         {loading ? (
@@ -198,6 +173,67 @@ export default function AdminCategoriesPage() {
             )}
           </Card>
         )}
+
+        <Modal
+          isOpen={showModal}
+          onClose={handleCancel}
+          title={editingId ? 'Sửa danh mục' : 'Tạo danh mục mới'}
+          size="lg"
+        >
+          <form onSubmit={handleSubmit} className={styles.modalForm}>
+            <div className={styles.formGrid}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Tên danh mục *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className={styles.input}
+                  placeholder="VD: Giấy phép xây dựng"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Slug *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  className={styles.input}
+                  placeholder="VD: giay-phep-xay-dung"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Thứ tự hiển thị</label>
+                <input
+                  type="number"
+                  value={formData.displayOrder}
+                  onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })}
+                  className={styles.input}
+                />
+              </div>
+              <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+                <label className={styles.label}>Mô tả</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className={styles.textarea}
+                  rows={3}
+                  placeholder="Mô tả về danh mục..."
+                />
+              </div>
+            </div>
+            <div className={styles.formActions}>
+              <Button type="submit" variant="primary">
+                {editingId ? 'Cập nhật' : 'Tạo mới'}
+              </Button>
+              <Button type="button" variant="secondary" onClick={handleCancel}>
+                Hủy
+              </Button>
+            </div>
+          </form>
+        </Modal>
       </div>
     </div>
   );

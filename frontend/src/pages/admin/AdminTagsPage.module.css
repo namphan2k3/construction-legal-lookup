@@ -1,19 +1,39 @@
-.form {
-  margin-bottom: var(--space-2xl);
+.header__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-lg);
 }
 
-.formTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-primary-dark);
+.searchSection {
   margin-bottom: var(--space-lg);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  transition: all var(--transition);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }
 
 .formGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: var(--space-lg);
-  margin-bottom: var(--space-lg);
 }
 
 .formGroup {
@@ -22,22 +42,24 @@
   gap: var(--space-xs);
 }
 
-.label {
+.formLabel {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-text-secondary);
 }
 
-.input {
+.formInput {
   padding: var(--space-sm) var(--space-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
+  transition: all var(--transition);
 }
 
-.input:focus {
+.formInput:focus {
   outline: none;
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
 }
 
 .formActions {

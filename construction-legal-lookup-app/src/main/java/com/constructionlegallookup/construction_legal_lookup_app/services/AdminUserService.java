@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.admin.CreateUserRequest;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.admin.UpdateRoleRequest;
+import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.admin.UpdateUserRequest;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.responses.admin.AdminUserDto;
 
 public interface AdminUserService {
@@ -13,4 +14,5 @@ public interface AdminUserService {
     void enableUser(Long id);
     void updateUserRole(Long id, UpdateRoleRequest request);
     AdminUserDto createUser(CreateUserRequest request);
+    AdminUserDto updateUser(Long id, UpdateUserRequest request);
 }

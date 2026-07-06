@@ -3,6 +3,7 @@ import { Card } from '@/components/common/Card/Card';
 import { Button } from '@/components/common/Button/Button';
 import { LoadingOverlay } from '@/components/common/Spinner/Spinner';
 import { Badge } from '@/components/common/Badge/Badge';
+import { Modal } from '@/components/common/Modal/Modal';
 import {
   getTags,
   createTag,
@@ -16,6 +17,8 @@ export default function AdminTagsPage() {
   const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -23,13 +26,19 @@ export default function AdminTagsPage() {
 
   useEffect(() => {
     loadTags();
-  }, []);
+  }, [searchQuery]);
 
   const loadTags = async () => {
     setLoading(true);
     try {
       const data = await getTags();
-      setTags(data || []);
+      const filtered = searchQuery 
+        ? data.filter(tag => 
+            tag.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            tag.slug.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : data;
+      setTags(filtered || []);
     } catch (error) {
       console.error('Failed to load tags:', error);
     } finally {
@@ -47,6 +56,7 @@ export default function AdminTagsPage() {
       }
       setFormData({ name: '', slug: '' });
       setEditingId(null);
+      setShowModal(false);
       loadTags();
     } catch (error) {
       console.error('Failed to save tag:', error);
@@ -60,6 +70,7 @@ export default function AdminTagsPage() {
       name: tag.name,
       slug: tag.slug,
     });
+    setShowModal(true);
   };
 
   const handleDelete = async (id) => {
@@ -76,58 +87,40 @@ export default function AdminTagsPage() {
   const handleCancel = () => {
     setEditingId(null);
     setFormData({ name: '', slug: '' });
+    setShowModal(false);
   };
 
   return (
     <div className="page">
       <div className="container">
         <header className="page__header">
-          <h1 className="page__title">Quản lý Tags</h1>
-          <p className="page__subtitle">
-            Quản lý tags gán cho văn bản pháp luật.
-          </p>
+          <div className={styles.header__top}>
+            <div>
+              <h1 className="page__title">Quản lý Tags</h1>
+              <p className="page__subtitle">
+                Quản lý tags gán cho văn bản pháp luật.
+              </p>
+            </div>
+            <Button variant="primary" onClick={() => {
+              setEditingId(null);
+              setFormData({ name: '', slug: '' });
+              setShowModal(true);
+            }}>
+              Tạo tag mới
+            </Button>
+          </div>
         </header>
 
         <Card padding="md">
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <h3 className={styles.formTitle}>
-              {editingId ? 'Sửa tag' : 'Tạo tag mới'}
-            </h3>
-            <div className={styles.formGrid}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Tên tag *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className={styles.input}
-                  placeholder="VD: GPXD"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Slug *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  className={styles.input}
-                  placeholder="VD: gpxd"
-                />
-              </div>
-            </div>
-            <div className={styles.formActions}>
-              <Button type="submit" variant="primary">
-                {editingId ? 'Cập nhật' : 'Tạo mới'}
-              </Button>
-              {editingId && (
-                <Button type="button" variant="secondary" onClick={handleCancel}>
-                  Hủy
-                </Button>
-              )}
-            </div>
-          </form>
+          <div className={styles.searchSection}>
+            <input
+              type="text"
+              placeholder="Tìm kiếm tag..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
         </Card>
 
         {loading ? (
@@ -172,6 +165,52 @@ export default function AdminTagsPage() {
           </Card>
         )}
       </div>
+
+      <Modal
+        isOpen={showModal}
+        onClose={handleCancel}
+        title={editingId ? 'Sửa tag' : 'Tạo tag mới'}
+        size="md"
+      >
+        <form onSubmit={handleSubmit} className={styles.modalForm}>
+          <div className={styles.formGrid}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Tên tag *</label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className={styles.formInput}
+                placeholder="VD: GPXD"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Slug *</label>
+              <input
+                type="text"
+                required
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                className={styles.formInput}
+                placeholder="VD: gpxd"
+              />
+            </div>
+          </div>
+          <div className={styles.formActions}>
+            <Button type="submit" variant="primary">
+              {editingId ? 'Cập nhật' : 'Tạo mới'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCancel}
+            >
+              Hủy
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

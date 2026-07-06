@@ -32,8 +32,19 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public List<CategoryResponse> getAllCategories() {
-        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "displayOrder"))
-                .stream().map(categoryMapper::toCategoryResponse).toList();
+        List<Object[]> results = categoryRepository.findAllCategoriesWithCount();
+        return results.stream().map(row -> {
+            Long id = (Long) row[0];
+            String name = (String) row[1];
+            String slug = (String) row[2];
+            Long documentCount = (Long) row[3];
+            return CategoryResponse.builder()
+                    .id(id)
+                    .name(name)
+                    .slug(slug)
+                    .documentCount(documentCount != null ? documentCount : 0L)
+                    .build();
+        }).toList();
     }
 
     @Override

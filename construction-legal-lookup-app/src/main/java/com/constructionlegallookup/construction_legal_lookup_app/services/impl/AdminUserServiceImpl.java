@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.admin.CreateUserRequest;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.admin.UpdateRoleRequest;
+import com.constructionlegallookup.construction_legal_lookup_app.dto.requests.admin.UpdateUserRequest;
 import com.constructionlegallookup.construction_legal_lookup_app.dto.responses.admin.AdminUserDto;
 import com.constructionlegallookup.construction_legal_lookup_app.entities.User;
 import com.constructionlegallookup.construction_legal_lookup_app.enums.UserRole;
@@ -89,6 +90,43 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .role(request.getRole() != null ? UserRole.valueOf(request.getRole()) : UserRole.USER)
                 .enabled(true)
                 .build();
+
+        User saved = userRepository.save(user);
+        return userMapper.toAdminUserDto(saved);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public AdminUserDto updateUser(Long id, UpdateUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new AppException(ErrorCode.EMAIL_EXISTED);
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getPassword() != null) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
+
+        if (request.getFullName() != null) {
+            user.setFullName(request.getFullName());
+        }
+
+        if (request.getRole() != null) {
+            user.setRole(UserRole.valueOf(request.getRole()));
+        }
+
+        if (request.getEnabled() != null) {
+            user.setEnabled(request.getEnabled());
+            if (!request.getEnabled()) {
+                revokeAllUserTokens(id);
+            }
+        }
 
         User saved = userRepository.save(user);
         return userMapper.toAdminUserDto(saved);
