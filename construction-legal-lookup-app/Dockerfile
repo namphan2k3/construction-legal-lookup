@@ -14,8 +14,8 @@ COPY --from=build /app/target/*.jar /app/app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["sh","-c","java \
--Xms64m \
--Xmx192m \
+-Xms128m \
+-Xmx350m \
 -XX:+UseSerialGC \
 -XX:ActiveProcessorCount=1 \
 -Dserver.port=$PORT \
