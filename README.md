@@ -89,8 +89,8 @@ Hệ thống tra cứu văn bản pháp luật ngành xây dựng tích hợp AI
 
 ## Tài khoản demo
 
-- Admin: admin@example.com / password123
-- User: user@example.com / password123
+- Admin: admin@demo.com / Admin@123
+- User: user@demo.com / Demo@123
 
 ## Tài liệu tham khảo
 
