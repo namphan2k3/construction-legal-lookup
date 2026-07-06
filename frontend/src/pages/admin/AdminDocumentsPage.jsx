@@ -10,7 +10,9 @@ import {
   deleteDocument,
   restoreDocument,
   createDocument,
+  updateDocument,
   getCategories,
+  getTags,
 } from '@/services/admin.service';
 import { formatDate, getDocumentTypeLabel, getStatusLabel, getStatusVariant } from '@/utils/formatters';
 import styles from './AdminDocumentsPage.module.css';
@@ -26,6 +28,7 @@ export default function AdminDocumentsPage() {
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [tags, setTags] = useState([]);
   const [createFormData, setCreateFormData] = useState({
     documentNumber: '',
     title: '',
@@ -54,6 +57,8 @@ export default function AdminDocumentsPage() {
     expiryDate: '',
     status: 'CON_HIEU_LUC',
     sourceUrl: '',
+    contentText: '',
+    contentHtml: '',
     categoryIds: [],
     tagIds: [],
   });
@@ -67,6 +72,7 @@ export default function AdminDocumentsPage() {
 
   useEffect(() => {
     loadCategories();
+    loadTags();
   }, []);
 
   const loadDocuments = async () => {
@@ -97,6 +103,15 @@ export default function AdminDocumentsPage() {
       setCategories(data || []);
     } catch (error) {
       console.error('Failed to load categories:', error);
+    }
+  };
+
+  const loadTags = async () => {
+    try {
+      const data = await getTags();
+      setTags(data || []);
+    } catch (error) {
+      console.error('Failed to load tags:', error);
     }
   };
 
@@ -135,8 +150,10 @@ export default function AdminDocumentsPage() {
       expiryDate: doc.expiryDate || '',
       status: doc.status || 'CON_HIEU_LUC',
       sourceUrl: doc.sourceUrl || '',
-      categoryIds: doc.categoryIds || [],
-      tagIds: doc.tagIds || [],
+      contentText: doc.contentText || '',
+      contentHtml: doc.contentHtml || '',
+      categoryIds: (doc.categories || []).map(c => c.id) || [],
+      tagIds: (doc.tags || []).map(t => t.id) || [],
     });
     setShowEditForm(true);
   };
@@ -144,7 +161,27 @@ export default function AdminDocumentsPage() {
   const handleUpdateDocument = async (e) => {
     e.preventDefault();
     try {
-      await updateDocument(editingDocument.id, editFormData);
+      // Prepare JSON data for update
+      const updateData = {
+        documentNumber: editFormData.documentNumber,
+        title: editFormData.title,
+        abstractText: editFormData.abstractText,
+        documentType: editFormData.documentType,
+        issuingBody: editFormData.issuingBody,
+        signer: editFormData.signer,
+        issuedDate: editFormData.issuedDate,
+        effectiveDate: editFormData.effectiveDate,
+        expiryDate: editFormData.expiryDate,
+        status: editFormData.status,
+        sourceUrl: editFormData.sourceUrl,
+        contentText: editFormData.contentText,
+        contentHtml: editFormData.contentHtml,
+        categoryIds: editFormData.categoryIds,
+        tagIds: editFormData.tagIds,
+      };
+
+      await updateDocument(editingDocument.id, updateData);
+
       setShowEditForm(false);
       setEditingDocument(null);
       loadDocuments();
@@ -539,6 +576,34 @@ export default function AdminDocumentsPage() {
                 ))}
               </div>
             </div>
+            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+              <label className={styles.formLabel}>Tag</label>
+              <div className={styles.checkboxGroup}>
+                {tags.map((tag) => (
+                  <label key={tag.id} className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={createFormData.tagIds.includes(tag.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setCreateFormData({
+                            ...createFormData,
+                            tagIds: [...createFormData.tagIds, tag.id]
+                          });
+                        } else {
+                          setCreateFormData({
+                            ...createFormData,
+                            tagIds: createFormData.tagIds.filter(id => id !== tag.id)
+                          });
+                        }
+                      }}
+                      className={styles.checkbox}
+                    />
+                    {tag.name}
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
           <div className={styles.formActions}>
             <Button type="submit" variant="primary">
@@ -676,6 +741,26 @@ export default function AdminDocumentsPage() {
               />
             </div>
             <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+              <label className={styles.formLabel}>Nội dung văn bản</label>
+              <textarea
+                value={editFormData.contentText}
+                onChange={(e) => setEditFormData({ ...editFormData, contentText: e.target.value })}
+                className={styles.formInput}
+                rows={15}
+                placeholder="Nội dung văn bản..."
+              />
+            </div>
+            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+              <label className={styles.formLabel}>Nội dung HTML (tùy chọn)</label>
+              <textarea
+                value={editFormData.contentHtml}
+                onChange={(e) => setEditFormData({ ...editFormData, contentHtml: e.target.value })}
+                className={styles.formInput}
+                rows={15}
+                placeholder="Nội dung HTML..."
+              />
+            </div>
+            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
               <label className={styles.formLabel}>Danh mục</label>
               <div className={styles.checkboxGroup}>
                 {categories.map((category) => (
@@ -699,6 +784,34 @@ export default function AdminDocumentsPage() {
                       className={styles.checkbox}
                     />
                     {category.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className={styles.formGroup} style={{ gridColumn: '1 / -1' }}>
+              <label className={styles.formLabel}>Tag</label>
+              <div className={styles.checkboxGroup}>
+                {tags.map((tag) => (
+                  <label key={tag.id} className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={editFormData.tagIds.includes(tag.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setEditFormData({
+                            ...editFormData,
+                            tagIds: [...editFormData.tagIds, tag.id]
+                          });
+                        } else {
+                          setEditFormData({
+                            ...editFormData,
+                            tagIds: editFormData.tagIds.filter(id => id !== tag.id)
+                          });
+                        }
+                      }}
+                      className={styles.checkbox}
+                    />
+                    {tag.name}
                   </label>
                 ))}
               </div>
