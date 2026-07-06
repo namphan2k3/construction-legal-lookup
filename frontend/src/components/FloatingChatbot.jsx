@@ -4,6 +4,7 @@ import styles from './FloatingChatbot.module.css';
 import { Input } from '@/components/common/Input/Input';
 import { formatDate } from '@/utils/formatters';
 import { api } from '@/services/api';
+import { useAuthStore } from '@/stores/authStore';
 
 const SUGGESTED_QUESTIONS = [
   'Làm thế nào để xin giấy phép xây dựng?',
@@ -14,6 +15,9 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 const FloatingChatbot = () => {
+  const isAuthenticated = useAuthStore((s) => !!s.accessToken);
+  const sessionChecked = useAuthStore((s) => s.sessionChecked);
+  
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -49,10 +53,10 @@ Bạn có câu hỏi nào không?`,
 
   // Fetch quota when chat opens
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && isAuthenticated) {
       fetchQuota();
     }
-  }, [isOpen]);
+  }, [isOpen, isAuthenticated]);
 
   const fetchQuota = async () => {
     try {
@@ -117,6 +121,9 @@ Bạn có câu hỏi nào không?`,
       sendMessage();
     }
   };
+
+  if (!sessionChecked) return null;
+  if (!isAuthenticated) return null;
 
   return (
     <>
